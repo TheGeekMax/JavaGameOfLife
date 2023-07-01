@@ -1,32 +1,41 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 
 public class GameOfLifeFrame extends JFrame {
 
     public static final int GAME_WIDTH = 600;
     public static final int OPT_WIDTH = 300;
 
-    public static final int CASE_WIDTH = 30;
-    public static final int TILEMAP_WIDTH = 100;
-    public static final int TILEMAP_HEIGHT = 100;
+    public static final int CASE_WIDTH = 5;
+    public static final int TILEMAP_WIDTH = 400;
+    public static final int TILEMAP_HEIGHT = 400;
 
     public static final int PLAYER_SPEED = 5;
 
-    private boolean upPressed = false;
-    private boolean rightPressed = false;
-    private boolean downPressed = false;
-    private boolean leftPressed = false;
+    public KeyMovement camMovement= new KeyMovement(KeyEvent.VK_Z,KeyEvent.VK_Q,KeyEvent.VK_S,KeyEvent.VK_D);
 
-
-    private int dx =0;
-    private int dy = 0;
+    public GameOfLife gameoflife;
 
     public Camera camera= new Camera(CASE_WIDTH,TILEMAP_WIDTH,TILEMAP_HEIGHT,GAME_WIDTH,GAME_WIDTH);
     public Game game = new Game(this);
 
+    private boolean playing = false;
+    private int frameCount = 0;
+
     public GameOfLifeFrame(){
+        boolean[][] plateau = new boolean[TILEMAP_WIDTH][TILEMAP_HEIGHT];
+        //on init le tableau
+        for(int i = 0; i < TILEMAP_WIDTH; i ++){
+            for(int j = 0; j < TILEMAP_WIDTH; j ++){
+                plateau[i][j] = false;
+            }
+        }
+        gameoflife = new GameOfLife(plateau);
+
+
+
+        //init de la fenetre
         this.setTitle("GameOfLife");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
@@ -37,82 +46,45 @@ public class GameOfLifeFrame extends JFrame {
         this.pack();
         this.setResizable(false);
 
+        //pour le mouvement
         this.addKeyListener(new KeyListener() {
             @Override
-            public void keyTyped(KeyEvent e) {
-
-            }
-
-            private int clamppm1(int v){
-                if(v >=1)
-                    return 1;
-                if(v <= 1)
-                    return -1;
-                return 0;
-            }
+            public void keyTyped(KeyEvent e) {}
 
             @Override
             public void keyPressed(KeyEvent e) {
-                switch(e.getKeyCode()){
-                    case KeyEvent.VK_Z:
-                        upPressed = true;
-                        break;
-
-                    case KeyEvent.VK_S:
-                        downPressed = true;
-                        break;
-
-                    case KeyEvent.VK_Q:
-                        leftPressed = true;
-                        break;
-
-                    case KeyEvent.VK_D:
-                        rightPressed = true;
-                        break;
+                camMovement.keyPressed(e);
+                if(e.getKeyCode() == KeyEvent.VK_SPACE){
+                    playing = !playing;
+                }else if(e.getKeyCode() == KeyEvent.VK_R){
+                    for(int i = 0 ; i < TILEMAP_WIDTH; i ++){
+                        for(int j = 0 ; j < TILEMAP_HEIGHT; j ++){
+                            plateau[i][j] = Math.random()>.5f;
+                        }
+                    }
+                }else if(e.getKeyCode() == KeyEvent.VK_B){
+                    for(int i = 0 ; i < TILEMAP_WIDTH; i ++){
+                        for(int j = 0 ; j < TILEMAP_HEIGHT; j ++){
+                            plateau[i][j] = false;
+                        }
+                    }
                 }
-                calculateDc();
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                switch(e.getKeyCode()){
-                    case KeyEvent.VK_Z:
-                        upPressed = false;
-                        break;
-
-                    case KeyEvent.VK_S:
-                        downPressed = false;
-                        break;
-
-                    case KeyEvent.VK_Q:
-                        leftPressed = false;
-                        break;
-
-                    case KeyEvent.VK_D:
-                        rightPressed = false;
-                        break;
-                }
-                calculateDc();
+                camMovement.keyReleased(e);
             }
         });
 
         mainLoop();
     }
 
-    private void calculateDc(){
-        dx = 0;
-        dy = 0;
-
-        dy -= upPressed?1:0;
-        dy += downPressed?1:0;
-        dx -= leftPressed?1:0;
-        dx += rightPressed?1:0;
-    }
-
     private void mainLoop(){
         while(true) {
-            if (dx != 0 || dy != 0) {
-                camera.updateCoors(PLAYER_SPEED*dx,PLAYER_SPEED*dy);
+            Vector2Int currentCameraMovement = camMovement.getDirrection();
+            if (currentCameraMovement.getX() != 0 || currentCameraMovement.getY() != 0) {
+                camera.updateCoors(PLAYER_SPEED*currentCameraMovement.getX(),PLAYER_SPEED*currentCameraMovement.getY());
                 game.repaint();
             }
 
@@ -121,6 +93,13 @@ public class GameOfLifeFrame extends JFrame {
             }catch(InterruptedException e) {
                 e.printStackTrace();
             }
+
+            if(playing && frameCount >= 5){
+                frameCount = -1;
+                gameoflife.iteration();
+                game.repaint();
+            }
+            frameCount++;
             //System.out.println(dx + ":"+dy);
         }
     }

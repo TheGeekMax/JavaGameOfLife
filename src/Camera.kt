@@ -74,4 +74,16 @@ class Camera(private val cw: Int,
             }
         }
     }
+
+    private fun truncate(x:Float):Int{
+        var value = 0;
+        while(value < x) value++
+        return value - 1
+    }
+
+    fun click(screenX:Float, screenY:Float,cameT:CameraShow){
+        val xTab:Float = ((screenX + camX - (screenWidth/2f))/cw)
+        val yTab:Float = ((screenY + camY - (screenHeight/2f))/cw)
+        cameT.click(truncate(xTab),truncate(yTab))
+    }
 }

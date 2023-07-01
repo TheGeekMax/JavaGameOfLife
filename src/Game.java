@@ -1,11 +1,22 @@
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class Game extends JPanel implements CameraShow {
     private GameOfLifeFrame instance;
 
     public Game(GameOfLifeFrame instance){
         this.instance = instance;
+
+        //pour les clicks
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                super.mousePressed(e);
+                instance.camera.click((float)e.getPoint().getX(),(float)e.getPoint().getY(),instance.game);
+            }
+        });
     }
 
     @Override
@@ -24,7 +35,16 @@ public class Game extends JPanel implements CameraShow {
     }
 
     public void showTile(Graphics g, int x, int y,int posX, int posY){
-        g.setColor((x+y)%2 ==0 ? Color.WHITE:Color.BLACK);
+        g.setColor(instance.gameoflife.getPlateau()[x][y] ? Color.WHITE:Color.BLACK);
         g.fillRect(posX,posY,GameOfLifeFrame.CASE_WIDTH,GameOfLifeFrame.CASE_WIDTH);
+        if(!instance.gameoflife.getPlateau()[x][y]){
+            g.setColor(Color.WHITE);
+            //g.drawRect(posX,posY,GameOfLifeFrame.CASE_WIDTH-1,GameOfLifeFrame.CASE_WIDTH-1);
+        }
+    }
+
+    public void click(int tabX, int tabY){
+        instance.gameoflife.getPlateau()[tabX][tabY] = !instance.gameoflife.getPlateau()[tabX][tabY];
+        instance.game.repaint();
     }
 }

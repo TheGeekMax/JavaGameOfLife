@@ -1,6 +1,9 @@
+package camera
+
+import tools.Vector2Int
 import java.awt.Graphics
 
-class Camera(private val cw: Int,
+class Camera(private var cw: Int,
              private val tilemapWidth:Int, private val tilemapHeight:Int,
              private var screenWidth:Int, private var screenHeight:Int) {
 
@@ -54,9 +57,11 @@ class Camera(private val cw: Int,
         isInBorder = (camX == minX || camX == maxX || camY == minY || camY == maxY)
     }
 
-    private fun getBoundCoors():Pair<Vector2Int,Vector2Int> {
-        var minCoors: Vector2Int = Vector2Int(((camX-(screenWidth/2f))/cw).toInt(),((camY-(screenHeight/2f))/cw).toInt())
-        var maxCoors: Vector2Int = Vector2Int(((camX+(screenWidth/2f))/cw).toInt()+1,((camY+(screenHeight/2f))/cw).toInt()+1)
+    fun getBoundCoors():Pair<Vector2Int, Vector2Int> {
+        var minCoors: Vector2Int =
+            Vector2Int(((camX - (screenWidth / 2f)) / cw).toInt(), ((camY - (screenHeight / 2f)) / cw).toInt())
+        var maxCoors: Vector2Int =
+            Vector2Int(((camX + (screenWidth / 2f)) / cw).toInt() + 1, ((camY + (screenHeight / 2f)) / cw).toInt() + 1)
         maxCoors.x = Math.min(maxCoors.x,tilemapWidth-1)
         maxCoors.y = Math.min(maxCoors.y,tilemapWidth-1)
 
@@ -64,10 +69,10 @@ class Camera(private val cw: Int,
         return Pair(minCoors,maxCoors)
     }
 
-    fun showView(g:Graphics,cameT:CameraShow){
-        val bounds :Pair<Vector2Int,Vector2Int> = getBoundCoors()
-        var min:Vector2Int = bounds.first
-        var max:Vector2Int = bounds.second
+    fun showView(g:Graphics,cameT: CameraShow){
+        val bounds :Pair<Vector2Int, Vector2Int> = getBoundCoors()
+        var min: Vector2Int = bounds.first
+        var max: Vector2Int = bounds.second
         for(i in min.x..max.x){
             for(j in min.y..max.y){
                 cameT.showTile(g,i,j,i*cw-camX.toInt()+(screenWidth/2),j*cw-camY.toInt()+(screenHeight/2))
@@ -81,9 +86,23 @@ class Camera(private val cw: Int,
         return value - 1
     }
 
-    fun click(screenX:Float, screenY:Float,cameT:CameraShow){
+    fun click(screenX:Float, screenY:Float,cameT: CameraShow):Pair<Int,Int>{
         val xTab:Float = ((screenX + camX - (screenWidth/2f))/cw)
         val yTab:Float = ((screenY + camY - (screenHeight/2f))/cw)
         cameT.click(truncate(xTab),truncate(yTab))
+        return Pair<Int,Int>(truncate(xTab),truncate(yTab))
+    }
+
+    fun canvasToGlobalcoors(screenX:Float, screenY:Float):Pair<Int,Int>{
+        val xTab:Float = ((screenX + camX - (screenWidth/2f))/cw)
+        val yTab:Float = ((screenY + camY - (screenHeight/2f))/cw)
+        return Pair<Int,Int>(truncate(xTab),truncate(yTab))
+    }
+
+    fun zoom(value:Int){
+        camX = (camX.toFloat()/cw)*(cw + value)
+        camY = (camY.toFloat()/cw)*(cw + value)
+        cw += value;
+        calculateBorder()
     }
 }

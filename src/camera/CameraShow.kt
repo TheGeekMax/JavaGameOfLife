@@ -1,3 +1,5 @@
+package camera
+
 import java.awt.Graphics
 
 interface CameraShow {

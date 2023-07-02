@@ -1,3 +1,5 @@
+package tools
+
 import java.awt.event.KeyEvent
 
 class KeyMovement(val keyUp:Int, val keyLeft:Int, val keyDown:Int, val keyRight:Int) {
@@ -19,8 +21,8 @@ class KeyMovement(val keyUp:Int, val keyLeft:Int, val keyDown:Int, val keyRight:
         dx += if (rightPressed) 1 else 0
     }
 
-    fun getDirrection():Vector2Int{
-        return Vector2Int(dx,dy)
+    fun getDirrection(): Vector2Int {
+        return Vector2Int(dx, dy)
     }
 
     fun keyPressed(key:KeyEvent){
